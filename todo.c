@@ -5,7 +5,15 @@
 #define WM_CLASS "TodoC" /* window title */
 #define WIN_PADDING 20
 
+typedef enum {
+  ALL = 0,
+  TODO = 1,
+  IN_PROGRESS = 2,
+  COMPLETED = 3,
+} EntryFilter;
+
 static int win_w = 920, win_h = 420;
+static EntryFilter current_filter = 0;
 static LfFont title_font;
 static LfFont regular_font;
 static LfFont bold_font;
@@ -45,18 +53,17 @@ render_filters(void)
   static const char * filters[] = { "ALL", "TODO", "IN PROGRESS", "COMPLETED" };
 
   LfUIElementProps btn_props = lf_get_theme().button_props;
-  btn_props.color = LF_NO_COLOR;
-  btn_props.text_color = (LfColor) { 240, 240, 240, 255 };
+  btn_props.margin_top = WIN_PADDING;
+  btn_props.padding = 6.0f;
   btn_props.border_width = 0.0f;
+  btn_props.corner_radius = 6.0f;
 
   lf_push_font(&bold_font);
   lf_next_line();
-  lf_push_style_props(btn_props);
 
   /* float to right */
   {
     float filters_w = 0.0f;
-
     float ptr_x_before = lf_get_ptr_x();
 
     lf_set_no_render(true);
@@ -64,16 +71,29 @@ render_filters(void)
       lf_button(filters[i]);
     lf_set_no_render(false);
 
-    filters_w = lf_get_ptr_x() - ptr_x_before - btn_props.margin_left - btn_props.margin_right;
+    filters_w = lf_get_ptr_x() - ptr_x_before
+      - btn_props.margin_left - btn_props.margin_right
+      - (btn_props.padding * 2 * (num_filters - 1));
 
     lf_set_ptr_x_absolute(win_w - filters_w - (WIN_PADDING * 2));
   }
 
   /* actually print the buttons */
-  for (int i = 0; i < num_filters; ++i)
-    lf_button(filters[i]);
+  for (int i = 0; i < num_filters; ++i) {
+    btn_props.color = LF_NO_COLOR;
+    btn_props.text_color = (LfColor) { 255, 255, 255, 255 };
 
-  lf_pop_style_props();
+    if (current_filter == (EntryFilter) i) {
+      btn_props.color = (LfColor) { 180, 180, 200, 255 };
+      btn_props.text_color = (LfColor) { 11, 11, 11, 255 };
+    }
+
+    lf_push_style_props(btn_props);
+    if (lf_button(filters[i]) == LF_CLICKED)
+      current_filter = (EntryFilter) i;
+    lf_pop_style_props();
+  }
+
   lf_pop_font();
 }
 
