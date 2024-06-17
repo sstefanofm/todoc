@@ -8,6 +8,7 @@
 static int win_w = 920, win_h = 420;
 static LfFont title_font;
 static LfFont regular_font;
+static LfFont bold_font;
 
 static void
 render_header()
@@ -37,6 +38,28 @@ render_header()
   lf_pop_style_props();
 }
 
+static void
+render_filters()
+{
+  const int num_filters = 3;
+  static const char * filters[] = { "ALL", "IN PROGRESS", "COMPLETED" };
+
+  LfUIElementProps btn_props = lf_get_theme().button_props;
+  btn_props.color = LF_NO_COLOR;
+  btn_props.text_color = (LfColor) { 240, 240, 240, 255 };
+  btn_props.border_width = 0.0f;
+
+  lf_push_font(&bold_font);
+  lf_next_line();
+  lf_push_style_props(btn_props);
+
+  for (int i = 0; i < num_filters; ++i)
+    lf_button(filters[i]);
+
+  lf_pop_style_props();
+  lf_pop_font();
+}
+
 int
 main(void)
 {
@@ -52,8 +75,9 @@ main(void)
   theme.div_props.color = LF_NO_COLOR;
   lf_set_theme(theme);
 
-  title_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 30);
-  regular_font = lf_load_font("./font/SpaceMonoNerdFont-Regular.ttf", 20);
+  title_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 35);
+  regular_font = lf_load_font("./font/SpaceMonoNerdFont-Regular.ttf", 25);
+  bold_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 25);
 
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -68,7 +92,9 @@ main(void)
     );
 
     render_header();
+    render_filters();
 
+    lf_div_end();
     lf_end();
 
     glfwPollEvents();
