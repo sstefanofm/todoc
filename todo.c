@@ -11,7 +11,7 @@ static LfFont regular_font;
 static LfFont bold_font;
 
 static void
-render_header()
+render_header(void)
 {
   const float btn_w = 100.0f;
 
@@ -39,11 +39,10 @@ render_header()
 }
 
 static void
-render_filters()
+render_filters(void)
 {
-  const int num_filters = 3;
-  static const char * filters[] = { "ALL", "IN PROGRESS", "COMPLETED" };
-  float filters_w = 0.0f;
+  const int num_filters = 4;
+  static const char * filters[] = { "ALL", "TODO", "IN PROGRESS", "COMPLETED" };
 
   LfUIElementProps btn_props = lf_get_theme().button_props;
   btn_props.color = LF_NO_COLOR;
@@ -56,6 +55,8 @@ render_filters()
 
   /* float to right */
   {
+    float filters_w = 0.0f;
+
     float ptr_x_before = lf_get_ptr_x();
 
     lf_set_no_render(true);
