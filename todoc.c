@@ -119,6 +119,7 @@ main(void)
 
   lf_free_font(&title_font);
   lf_free_font(&regular_font);
+  lf_free_font(&bold_font);
 
   glfwDestroyWindow(window);
   glfwTerminate();
