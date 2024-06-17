@@ -10,13 +10,28 @@ typedef enum {
   TODO = 1,
   IN_PROGRESS = 2,
   COMPLETED = 3,
-} EntryFilter;
+} Filter;
+
+typedef enum {
+  LOW = 0,
+  MEDIUM = 1,
+  HIGH = 2,
+} Priority;
+
+typedef struct {
+  bool completed;
+  char * description, * date;
+  Priority priority;
+} task;
 
 static int win_w = 920, win_h = 420;
-static EntryFilter current_filter = 0;
+static Filter current_filter = 0;
 static LfFont title_font;
 static LfFont regular_font;
 static LfFont bold_font;
+
+static task * tasks[1024];
+static uint32_t num_tasks = 0;
 
 static void
 render_header(void)
@@ -62,14 +77,13 @@ render_filters(void)
   lf_next_line();
 
   /* float to right */
+  lf_set_no_render(true);
   {
     float filters_w = 0.0f;
     float ptr_x_before = lf_get_ptr_x();
 
-    lf_set_no_render(true);
     for (int i = 0; i < num_filters; ++i)
       lf_button(filters[i]);
-    lf_set_no_render(false);
 
     filters_w = lf_get_ptr_x() - ptr_x_before
       - btn_props.margin_left - btn_props.margin_right
@@ -77,20 +91,21 @@ render_filters(void)
 
     lf_set_ptr_x_absolute(win_w - filters_w - (WIN_PADDING * 2));
   }
+  lf_set_no_render(false);
 
   /* actually print the buttons */
   for (int i = 0; i < num_filters; ++i) {
     btn_props.color = LF_NO_COLOR;
     btn_props.text_color = (LfColor) { 255, 255, 255, 255 };
 
-    if (current_filter == (EntryFilter) i) {
+    if (current_filter == (Filter) i) {
       btn_props.color = (LfColor) { 180, 180, 200, 255 };
       btn_props.text_color = (LfColor) { 11, 11, 11, 255 };
     }
 
     lf_push_style_props(btn_props);
     if (lf_button(filters[i]) == LF_CLICKED)
-      current_filter = (EntryFilter) i;
+      current_filter = (Filter) i;
     lf_pop_style_props();
   }
 
@@ -116,6 +131,13 @@ main(void)
   regular_font = lf_load_font("./font/SpaceMonoNerdFont-Regular.ttf", 25);
   bold_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 25);
 
+  task * new_task = (task *) malloc(sizeof(* new_task));
+  new_task->completed = false;
+  new_task->priority = LOW;
+  new_task->date = "empty";
+  new_task->description = "Code something";
+  tasks[num_tasks++] = new_task;
+
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
@@ -130,6 +152,20 @@ main(void)
 
     render_header();
     render_filters();
+    {
+      lf_next_line();
+
+      lf_div_begin(
+        ((vec2s) { lf_get_ptr_x(), lf_get_ptr_y() }),
+        ((vec2s) { win_w - WIN_PADDING, win_h - WIN_PADDING }),
+        true
+      );
+
+      for (int i = 0; i < num_tasks; ++i, lf_next_line())
+        lf_text(tasks[i]->description);
+
+      lf_div_end();
+    }
 
     lf_div_end();
     lf_end();
