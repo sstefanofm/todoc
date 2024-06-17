@@ -133,7 +133,7 @@ main(void)
 
   task * new_task = (task *) malloc(sizeof(* new_task));
   new_task->completed = false;
-  new_task->priority = LOW;
+  new_task->priority = MEDIUM;
   new_task->date = "empty";
   new_task->description = "Code something";
   tasks[num_tasks++] = new_task;
@@ -153,6 +153,9 @@ main(void)
     render_header();
     render_filters();
     {
+      const float priority_size = 15.0f;
+      LfColor priority_color;
+
       lf_next_line();
 
       lf_div_begin(
@@ -161,8 +164,22 @@ main(void)
         true
       );
 
-      for (int i = 0; i < num_tasks; ++i, lf_next_line())
-        lf_text(tasks[i]->description);
+      for (int i = 0; i < num_tasks; ++i, lf_next_line()) {
+        task * t = tasks[i];
+
+        switch (t->priority) {
+          case LOW:
+            priority_color = (LfColor) { 76, 80, 175, 255 };
+            break;
+          case MEDIUM:
+            priority_color = (LfColor) { 175, 175, 48, 255 };
+            break;
+          case HIGH:
+            priority_color = (LfColor) { 175, 80, 47, 255 };
+        }
+
+        lf_rect(priority_size, priority_size, priority_color, 3.0f);
+      }
 
       lf_div_end();
     }
