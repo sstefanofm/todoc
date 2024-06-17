@@ -43,6 +43,7 @@ render_filters()
 {
   const int num_filters = 3;
   static const char * filters[] = { "ALL", "IN PROGRESS", "COMPLETED" };
+  float filters_w = 0.0f;
 
   LfUIElementProps btn_props = lf_get_theme().button_props;
   btn_props.color = LF_NO_COLOR;
@@ -53,6 +54,21 @@ render_filters()
   lf_next_line();
   lf_push_style_props(btn_props);
 
+  /* float to right */
+  {
+    float ptr_x_before = lf_get_ptr_x();
+
+    lf_set_no_render(true);
+    for (int i = 0; i < num_filters; ++i)
+      lf_button(filters[i]);
+    lf_set_no_render(false);
+
+    filters_w = lf_get_ptr_x() - ptr_x_before - btn_props.margin_left - btn_props.margin_right;
+
+    lf_set_ptr_x_absolute(win_w - filters_w - (WIN_PADDING * 2));
+  }
+
+  /* actually print the buttons */
   for (int i = 0; i < num_filters; ++i)
     lf_button(filters[i]);
 
