@@ -2,17 +2,17 @@
 #include <GLFW/glfw3.h>
 #include <leif/leif.h>
 
+#define WM_CLASS "TodoC" /* window title */
 #define WIN_PADDING 20
-
-static int win_w = 920, win_h = 420;
-static LfFont title_font;
 
 int
 main(void)
 {
+  int win_w = 920, win_h = 420;
+
   glfwInit();
 
-  GLFWwindow * window = glfwCreateWindow(win_w, win_h, "TodoC", NULL, NULL);
+  GLFWwindow * window = glfwCreateWindow(win_w, win_h, WM_CLASS, NULL, NULL);
 
   glfwMakeContextCurrent(window);
 
@@ -22,7 +22,7 @@ main(void)
   theme.div_props.color = LF_NO_COLOR;
   lf_set_theme(theme);
 
-  title_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 30);
+  LfFont title_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 30);
 
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -36,7 +36,7 @@ main(void)
       true
     );
     lf_push_font(&title_font);
-    lf_text("Hellooo");
+    lf_text(WM_CLASS);
     lf_pop_font();
 
     lf_end();
