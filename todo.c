@@ -185,7 +185,7 @@ main(void)
       lf_pop_style_props();
       lf_push_font(&task_font);
 
-      /* draw priority badges */
+      /* draw task */
       for (int i = 0; i < num_tasks; ++i, lf_next_line()) {
         task * t = tasks[i];
 
@@ -209,14 +209,28 @@ main(void)
 
         const float margin_left = 15.f;
 
+        LfUIElementProps cb_props = lf_get_theme().checkbox_props;
+        cb_props.color = LF_NO_COLOR;
+        cb_props.border_width = .5f;
+        cb_props.border_color = (LfColor) { 66, 66, 66, 255 };
+        cb_props.corner_radius = 2.f;
+
+        lf_set_ptr_x(margin_left);
+        lf_set_ptr_y_absolute(ptr_y - inc);
+        lf_push_style_props(cb_props);
+        lf_checkbox("", &tasks[i]->completed, LF_NO_COLOR, ((LfColor) { 65, 167, 204, 255 }));
+        lf_pop_style_props();
+
+        lf_next_line();
+
         /* description */
         lf_set_ptr_y_absolute(ptr_y - inc);
-        lf_set_ptr_x(margin_left);
+        lf_set_ptr_x(margin_left * 3.8f);
         lf_text(tasks[i]->description);
 
         /* date */
         lf_set_ptr_y_absolute(ptr_y);
-        lf_set_ptr_x(margin_left);
+        lf_set_ptr_x(margin_left * 3.8f);
         lf_push_style_props(date_props);
         lf_text(tasks[i]->date);
         lf_pop_style_props();
@@ -238,6 +252,7 @@ main(void)
   lf_free_font(&title_font);
   lf_free_font(&regular_font);
   lf_free_font(&bold_font);
+  lf_free_font(&task_font);
 
   glfwDestroyWindow(window);
   glfwTerminate();
