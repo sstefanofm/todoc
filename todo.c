@@ -29,6 +29,7 @@ static Filter current_filter = 0;
 static LfFont title_font;
 static LfFont regular_font;
 static LfFont bold_font;
+static LfFont task_font;
 
 static task * tasks[1024];
 static uint32_t num_tasks = 0;
@@ -130,6 +131,7 @@ main(void)
   title_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 35);
   regular_font = lf_load_font("./font/SpaceMonoNerdFont-Regular.ttf", 25);
   bold_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 25);
+  task_font = lf_load_font("./font/FreeSansBold.otf", 17);
 
   task * new_task = (task *) malloc(sizeof(* new_task));
   new_task->completed = false;
@@ -137,6 +139,12 @@ main(void)
   new_task->date = "empty";
   new_task->description = "Code something";
   tasks[num_tasks++] = new_task;
+  task * task2 = (task *) malloc(sizeof(* task2));
+  task2->completed = true;
+  task2->priority = MEDIUM;
+  task2->date = "new date";
+  task2->description = "Ur momma";
+  tasks[num_tasks++] = task2;
 
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -153,26 +161,29 @@ main(void)
     render_header();
     render_filters();
     {
-      const float priority_size = 13.0f;
       LfColor priority_color;
-      LfUIElementProps div_props = lf_get_theme().div_props;
+
+      LfUIElementProps date_props = lf_get_theme().text_props;
+      date_props.text_color = (LfColor) { 140, 140, 140, 255 };
 
       lf_next_line();
 
+      LfUIElementProps div_props = lf_get_theme().div_props;
       div_props.margin_left = 0.0f;
       div_props.margin_top = 0.0f;
       div_props.margin_right = 0.0f;
       div_props.margin_bottom = 0.0f;
-      div_props.padding = (float) WIN_PADDING;
       lf_push_style_props(div_props);
 
       lf_div_begin(
-        ((vec2s) { lf_get_ptr_x() + WIN_PADDING, lf_get_ptr_y() + (WIN_PADDING * 2) }),
-        ((vec2s) { win_w - (WIN_PADDING * 4.0f), win_h - lf_get_ptr_y() - (WIN_PADDING * 4.0f) }),
+        ((vec2s) { lf_get_ptr_x(), lf_get_ptr_y() }),
+        ((vec2s) { win_w - (WIN_PADDING * 2.0f), win_h - lf_get_ptr_y() - WIN_PADDING }),
         true
       );
 
+      float ptr_y = lf_get_ptr_y();
       lf_pop_style_props();
+      lf_push_font(&task_font);
 
       /* draw priority badges */
       for (int i = 0; i < num_tasks; ++i, lf_next_line()) {
@@ -183,15 +194,37 @@ main(void)
             priority_color = (LfColor) { 14, 168, 239, 255 };
             break;
           case MEDIUM:
-            priority_color = (LfColor) { 239, 157, 14, 255 };
+            priority_color = (LfColor) { 239, 200, 14, 255 };
             break;
           case HIGH:
             priority_color = (LfColor) { 239, 14, 48, 255 };
         }
 
-        lf_rect(priority_size, priority_size, priority_color, 4.0f);
+        const float inc = 18.f;
+        const float priority_size = 11.f;
+
+        /* priority badge */
+        lf_set_ptr_y_absolute(ptr_y += inc);
+        lf_rect(priority_size, priority_size, priority_color, 6.f);
+
+        const float margin_left = 15.f;
+
+        /* description */
+        lf_set_ptr_y_absolute(ptr_y - inc);
+        lf_set_ptr_x(margin_left);
+        lf_text(tasks[i]->description);
+
+        /* date */
+        lf_set_ptr_y_absolute(ptr_y);
+        lf_set_ptr_x(margin_left);
+        lf_push_style_props(date_props);
+        lf_text(tasks[i]->date);
+        lf_pop_style_props();
+
+        ptr_y += inc * 2;
       }
 
+      lf_pop_font();
       lf_div_end();
     }
 
