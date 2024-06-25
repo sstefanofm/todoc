@@ -25,10 +25,11 @@ typedef struct {
   Priority priority;
 } task;
 
-static int win_w = 920, win_h = 420;
+static int win_w = 480, win_h = 320;
 static Filter current_filter = 0;
 static LfFont title_font;
-static LfFont bold_font;
+static LfFont newtask_font;
+static LfFont filter_font;
 static LfFont task_font;
 static LfTexture trash_texture;
 
@@ -56,7 +57,7 @@ render_header(void)
   lf_push_style_props(btn_props);
   lf_set_ptr_x_absolute(win_w - (WIN_PADDING * 2.0f) - btn_w);
 
-  lf_push_font(&bold_font);
+  lf_push_font(&newtask_font);
   lf_button_fixed("New task", btn_w, -1);
   lf_pop_font();
 
@@ -67,7 +68,7 @@ static void
 render_filters(void)
 {
   const int num_filters = 4;
-  static const char * filters[] = { "ALL", "TODO", "IN PROGRESS", "COMPLETED" };
+  static const char * filters[] = { "all", "todo", "in progress", "completed" };
 
   LfUIElementProps btn_props = lf_get_theme().button_props;
   btn_props.margin_top = WIN_PADDING;
@@ -75,25 +76,8 @@ render_filters(void)
   btn_props.border_width = 0.0f;
   btn_props.corner_radius = 6.0f;
 
-  lf_push_font(&bold_font);
+  lf_push_font(&filter_font);
   lf_next_line();
-
-  /* float to right */
-  lf_set_no_render(true);
-  {
-    float filters_w = 0.0f;
-    float ptr_x_before = lf_get_ptr_x();
-
-    for (int i = 0; i < num_filters; ++i)
-      lf_button(filters[i]);
-
-    filters_w = lf_get_ptr_x() - ptr_x_before
-      - btn_props.margin_left - btn_props.margin_right
-      - (btn_props.padding * 2 * (num_filters - 1));
-
-    lf_set_ptr_x_absolute(win_w - filters_w - (WIN_PADDING * 2));
-  }
-  lf_set_no_render(false);
 
   /* actually print the buttons */
   for (int i = 0; i < num_filters; ++i) {
@@ -129,9 +113,10 @@ main(void)
   theme.div_props.color = LF_NO_COLOR;
   lf_set_theme(theme);
 
-  title_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 35);
-  bold_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 25);
-  task_font = lf_load_font("./font/FreeSansBold.otf", 17);
+  title_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 35);
+  newtask_font = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 20);
+  filter_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 16);
+  task_font = lf_load_font("./font/FreeSansBold.otf", 16);
 
   trash_texture = lf_load_texture("./icon/trash.png", true, LF_TEX_FILTER_LINEAR);
 
@@ -178,14 +163,15 @@ main(void)
       lf_push_style_props(div_props);
 
       lf_div_begin(
-        ((vec2s) { lf_get_ptr_x(), lf_get_ptr_y() }),
+        ((vec2s) { lf_get_ptr_x(), lf_get_ptr_y() + WIN_PADDING }),
         ((vec2s) { win_w - (WIN_PADDING * 2.0f), win_h - lf_get_ptr_y() - WIN_PADDING }),
         true
       );
 
-      float ptr_y = lf_get_ptr_y();
       lf_pop_style_props();
       lf_push_font(&task_font);
+
+      float ptr_y = lf_get_ptr_y();
 
       /* draw task */
       for (int i = 0; i < num_tasks; ++i, lf_next_line()) {
@@ -273,7 +259,8 @@ main(void)
   }
 
   lf_free_font(&title_font);
-  lf_free_font(&bold_font);
+  lf_free_font(&newtask_font);
+  lf_free_font(&filter_font);
   lf_free_font(&task_font);
 
   lf_free_texture(&trash_texture);
