@@ -27,7 +27,6 @@ typedef struct {
 static int win_w = 920, win_h = 420;
 static Filter current_filter = 0;
 static LfFont title_font;
-static LfFont regular_font;
 static LfFont bold_font;
 static LfFont task_font;
 
@@ -50,13 +49,13 @@ render_header(void)
   btn_props.margin_bottom = 0.0f;
   btn_props.color = (LfColor) { 211, 111, 135, 255 };
   btn_props.border_width = 0.0f;
-  btn_props.corner_radius = 2.0f;
+  btn_props.corner_radius = 7.f;
 
   lf_push_style_props(btn_props);
   lf_set_ptr_x_absolute(win_w - (WIN_PADDING * 2.0f) - btn_w);
 
-  lf_push_font(&regular_font);
-  lf_button_fixed("New todo", btn_w, -1);
+  lf_push_font(&bold_font);
+  lf_button_fixed("New task", btn_w, -1);
   lf_pop_font();
 
   lf_pop_style_props();
@@ -129,7 +128,6 @@ main(void)
   lf_set_theme(theme);
 
   title_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 35);
-  regular_font = lf_load_font("./font/SpaceMonoNerdFont-Regular.ttf", 25);
   bold_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 25);
   task_font = lf_load_font("./font/FreeSansBold.otf", 17);
 
@@ -250,7 +248,6 @@ main(void)
   }
 
   lf_free_font(&title_font);
-  lf_free_font(&regular_font);
   lf_free_font(&bold_font);
   lf_free_font(&task_font);
 
