@@ -9,15 +9,14 @@
 
 typedef enum {
   ALL = 0,
-  TODO = 1,
-  IN_PROGRESS = 2,
-  COMPLETED = 3,
+  IN_PROGRESS,
+  COMPLETED
 } Filter;
 
 typedef enum {
   LOW = 0,
-  MEDIUM = 1,
-  HIGH = 2,
+  MEDIUM,
+  HIGH
 } Priority;
 
 typedef struct {
@@ -68,8 +67,8 @@ render_header(void)
 static void
 render_filters(void)
 {
-  const uint8_t num_filters = 4;
-  static const char * filters[] = { "all", "todo", "in progress", "completed" };
+  const uint8_t num_filters = 3;
+  static const char * filters[] = { "all", "in progress", "completed" };
 
   LfUIElementProps btn_props = lf_get_theme().button_props;
   btn_props.margin_top = WIN_PADDING;
@@ -97,6 +96,7 @@ render_filters(void)
   }
 
   lf_pop_font();
+  lf_next_line();
 }
 
 int
@@ -149,13 +149,6 @@ main(void)
     render_header();
     render_filters();
     {
-      LfColor priority_color;
-
-      LfUIElementProps date_props = lf_get_theme().text_props;
-      date_props.text_color = (LfColor) { 140, 140, 140, 255 };
-
-      lf_next_line();
-
       LfUIElementProps div_props = lf_get_theme().div_props;
       div_props.margin_left = 0.0f;
       div_props.margin_top = 0.0f;
@@ -169,24 +162,21 @@ main(void)
         true
       );
 
-      if (!num_tasks) {
-        LfUIElementProps notask_props = lf_get_theme().text_props;
-        notask_props.text_color = (LfColor) { 177, 177, 177, 255 };
-        lf_push_style_props(notask_props);
-
-        lf_push_font(&filter_font);
-        lf_text("There is no tasks here... :(");
-        lf_pop_font(&filter_font);
-
-        lf_pop_style_props();
-      }
-
       lf_pop_style_props();
       lf_push_font(&task_font);
+
+      uint16_t num_rendered = 0;
 
       /* draw task */
       for (uint16_t i = 0; i < num_tasks; ++i, lf_next_line()) {
         task * t = tasks[i];
+
+        if (current_filter == IN_PROGRESS && t->completed)
+          continue;
+        if (current_filter == COMPLETED && !t->completed)
+          continue;
+
+        ++num_rendered;
 
         float ptr_y = lf_get_ptr_y() + 5.f;
         const float inc_y = 16.5f;
@@ -194,6 +184,8 @@ main(void)
         float margin_left = 15.f;
 
         { /* draw priority badge */
+          LfColor priority_color;
+
           switch (t->priority) {
             case LOW:
               priority_color = (LfColor) { 14, 168, 239, 255 };
@@ -210,9 +202,6 @@ main(void)
         }
 
         { /* draw remove task trash can button */
-          lf_set_ptr_y_absolute(ptr_y - 5.f);
-          lf_set_ptr_x(margin_left *= 1.2f);
-
           LfUIElementProps trash_props = lf_get_theme().button_props;
           trash_props.color = LF_NO_COLOR;
           trash_props.border_width = 0.f;
@@ -222,6 +211,9 @@ main(void)
           trash_props.margin_right = 0.f;
           trash_props.margin_bottom = 0.f;
           lf_push_style_props(trash_props);
+
+          lf_set_ptr_y_absolute(ptr_y - 5.f);
+          lf_set_ptr_x(margin_left *= 1.2f);
 
           if (lf_image_button(
             ((LfTexture) { .id = trash_texture.id, .width = 20.f, .height = 20.f })
@@ -257,14 +249,29 @@ main(void)
         }
 
         { /* draw date */
+          LfUIElementProps date_props = lf_get_theme().text_props;
+          date_props.text_color = (LfColor) { 140, 140, 140, 255 };
+          lf_push_style_props(date_props);
+
           lf_set_ptr_y_absolute(ptr_y);
           lf_set_ptr_x(margin_left);
-          lf_push_style_props(date_props);
           lf_text(tasks[i]->date);
           lf_pop_style_props();
         }
 
         ptr_y += inc_y * 2;
+      }
+
+      if (!num_rendered) {
+        LfUIElementProps notask_props = lf_get_theme().text_props;
+        notask_props.text_color = (LfColor) { 177, 177, 177, 255 };
+        lf_push_style_props(notask_props);
+
+        lf_push_font(&filter_font);
+        lf_text("There is no tasks here... :(");
+        lf_pop_font(&filter_font);
+
+        lf_pop_style_props();
       }
 
       lf_pop_font();
