@@ -1,6 +1,7 @@
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <leif/leif.h>
+#include <stdio.h>
 
 #define WM_CLASS "TodoC" /* window title */
 #define WIN_PADDING 20
@@ -29,6 +30,7 @@ static Filter current_filter = 0;
 static LfFont title_font;
 static LfFont bold_font;
 static LfFont task_font;
+static LfTexture trash_texture;
 
 static task * tasks[1024];
 static uint32_t num_tasks = 0;
@@ -131,6 +133,8 @@ main(void)
   bold_font = lf_load_font("./font/SpaceMonoNerdFont-Bold.ttf", 25);
   task_font = lf_load_font("./font/FreeSansBold.otf", 17);
 
+  trash_texture = lf_load_texture("./icon/trash.png", true, LF_TEX_FILTER_LINEAR);
+
   task * new_task = (task *) malloc(sizeof(* new_task));
   new_task->completed = false;
   new_task->priority = LOW;
@@ -198,24 +202,45 @@ main(void)
             priority_color = (LfColor) { 239, 14, 48, 255 };
         }
 
-        const float inc = 18.f;
+        const float inc = 16.5f;
         const float priority_size = 11.f;
 
         /* priority badge */
         lf_set_ptr_y_absolute(ptr_y += inc);
         lf_rect(priority_size, priority_size, priority_color, 6.f);
 
-        const float margin_left = 15.f;
+        float margin_left = 15.f;
+
+        { /* remove task trash can button */
+          lf_set_ptr_y_absolute(ptr_y - (inc * 1.5f));
+
+          LfUIElementProps trash_props = lf_get_theme().button_props;
+          trash_props.color = LF_NO_COLOR;
+          trash_props.border_width = 0.f;
+          trash_props.padding = 20.f;
+          trash_props.margin_top = 0.f;
+          trash_props.margin_left = 0.f;
+          trash_props.margin_right = 0.f;
+          trash_props.margin_bottom = 0.f;
+          lf_push_style_props(trash_props);
+
+          if (lf_image_button(
+            ((LfTexture) { .id = trash_texture.id, .width = 20.f, .height = 20.f })
+          ) == LF_CLICKED)
+            printf("clicked\n");
+
+          lf_pop_style_props();
+        }
 
         LfUIElementProps cb_props = lf_get_theme().checkbox_props;
         cb_props.color = LF_NO_COLOR;
         cb_props.border_width = .5f;
         cb_props.border_color = (LfColor) { 66, 66, 66, 255 };
         cb_props.corner_radius = 2.f;
-
-        lf_set_ptr_x(margin_left);
-        lf_set_ptr_y_absolute(ptr_y - inc);
         lf_push_style_props(cb_props);
+
+        lf_set_ptr_x(margin_left *= 3.8);
+        lf_set_ptr_y_absolute(ptr_y - inc);
         lf_checkbox("", &tasks[i]->completed, LF_NO_COLOR, ((LfColor) { 65, 167, 204, 255 }));
         lf_pop_style_props();
 
@@ -223,12 +248,12 @@ main(void)
 
         /* description */
         lf_set_ptr_y_absolute(ptr_y - inc);
-        lf_set_ptr_x(margin_left * 3.8f);
+        lf_set_ptr_x(margin_left * 1.8f);
         lf_text(tasks[i]->description);
 
         /* date */
         lf_set_ptr_y_absolute(ptr_y);
-        lf_set_ptr_x(margin_left * 3.8f);
+        lf_set_ptr_x(margin_left * 1.8f);
         lf_push_style_props(date_props);
         lf_text(tasks[i]->date);
         lf_pop_style_props();
@@ -250,6 +275,8 @@ main(void)
   lf_free_font(&title_font);
   lf_free_font(&bold_font);
   lf_free_font(&task_font);
+
+  lf_free_texture(&trash_texture);
 
   glfwDestroyWindow(window);
   glfwTerminate();
