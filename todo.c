@@ -25,7 +25,7 @@ typedef struct {
   Priority priority;
 } task;
 
-static int win_w = 480, win_h = 320;
+static int win_w = 640, win_h = 320;
 static Filter current_filter = 0;
 static LfFont title_font;
 static LfFont newtask_font;
@@ -163,41 +163,39 @@ main(void)
       lf_push_style_props(div_props);
 
       lf_div_begin(
-        ((vec2s) { lf_get_ptr_x(), lf_get_ptr_y() + WIN_PADDING }),
+        ((vec2s) { lf_get_ptr_x(), lf_get_ptr_y() }),
         ((vec2s) { win_w - (WIN_PADDING * 2.0f), win_h - lf_get_ptr_y() - WIN_PADDING }),
         true
       );
 
       lf_pop_style_props();
       lf_push_font(&task_font);
-
-      float ptr_y = lf_get_ptr_y();
-
       /* draw task */
       for (int i = 0; i < num_tasks; ++i, lf_next_line()) {
         task * t = tasks[i];
 
-        switch (t->priority) {
-          case LOW:
-            priority_color = (LfColor) { 14, 168, 239, 255 };
-            break;
-          case MEDIUM:
-            priority_color = (LfColor) { 239, 200, 14, 255 };
-            break;
-          case HIGH:
-            priority_color = (LfColor) { 239, 14, 48, 255 };
-        }
-
+        float ptr_y = lf_get_ptr_y() + 5.f;
         const float inc = 16.5f;
         const float priority_size = 11.f;
-
-        /* priority badge */
-        lf_set_ptr_y_absolute(ptr_y += inc);
-        lf_rect(priority_size, priority_size, priority_color, 6.f);
-
         float margin_left = 15.f;
 
-        { /* remove task trash can button */
+        { /* draw priority badge */
+          switch (t->priority) {
+            case LOW:
+              priority_color = (LfColor) { 14, 168, 239, 255 };
+              break;
+            case MEDIUM:
+              priority_color = (LfColor) { 239, 200, 14, 255 };
+              break;
+            case HIGH:
+              priority_color = (LfColor) { 239, 14, 48, 255 };
+          }
+
+          lf_set_ptr_y_absolute(ptr_y += inc);
+          lf_rect(priority_size, priority_size, priority_color, 6.f);
+        }
+
+        { /* draw remove task trash can button */
           lf_set_ptr_y_absolute(ptr_y - (inc * 1.5f));
 
           LfUIElementProps trash_props = lf_get_theme().button_props;
@@ -218,31 +216,35 @@ main(void)
           lf_pop_style_props();
         }
 
-        LfUIElementProps cb_props = lf_get_theme().checkbox_props;
-        cb_props.color = LF_NO_COLOR;
-        cb_props.border_width = .5f;
-        cb_props.border_color = (LfColor) { 66, 66, 66, 255 };
-        cb_props.corner_radius = 2.f;
-        lf_push_style_props(cb_props);
+        { /* draw completed checkbox */
+          LfUIElementProps cb_props = lf_get_theme().checkbox_props;
+          cb_props.color = LF_NO_COLOR;
+          cb_props.border_width = .5f;
+          cb_props.border_color = (LfColor) { 66, 66, 66, 255 };
+          cb_props.corner_radius = 2.f;
+          lf_push_style_props(cb_props);
 
-        lf_set_ptr_x(margin_left *= 3.8);
-        lf_set_ptr_y_absolute(ptr_y - inc);
-        lf_checkbox("", &tasks[i]->completed, LF_NO_COLOR, ((LfColor) { 65, 167, 204, 255 }));
-        lf_pop_style_props();
+          lf_set_ptr_x(margin_left *= 3.8);
+          lf_set_ptr_y_absolute(ptr_y - inc);
+          lf_checkbox("", &tasks[i]->completed, LF_NO_COLOR, ((LfColor) { 65, 167, 204, 255 }));
+          lf_pop_style_props();
 
-        lf_next_line();
+          lf_next_line();
+        }
 
-        /* description */
-        lf_set_ptr_y_absolute(ptr_y - inc);
-        lf_set_ptr_x(margin_left * 1.8f);
-        lf_text(tasks[i]->description);
+        { /* draw description */
+          lf_set_ptr_y_absolute(ptr_y - inc);
+          lf_set_ptr_x(margin_left *= 1.8f);
+          lf_text(tasks[i]->description);
+        }
 
-        /* date */
-        lf_set_ptr_y_absolute(ptr_y);
-        lf_set_ptr_x(margin_left * 1.8f);
-        lf_push_style_props(date_props);
-        lf_text(tasks[i]->date);
-        lf_pop_style_props();
+        { /* draw date */
+          lf_set_ptr_y_absolute(ptr_y);
+          lf_set_ptr_x(margin_left);
+          lf_push_style_props(date_props);
+          lf_text(tasks[i]->date);
+          lf_pop_style_props();
+        }
 
         ptr_y += inc * 2;
       }
