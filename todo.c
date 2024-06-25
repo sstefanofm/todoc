@@ -169,8 +169,21 @@ main(void)
         true
       );
 
+      if (!num_tasks) {
+        LfUIElementProps notask_props = lf_get_theme().text_props;
+        notask_props.text_color = (LfColor) { 177, 177, 177, 255 };
+        lf_push_style_props(notask_props);
+
+        lf_push_font(&filter_font);
+        lf_text("There is no tasks here... :(");
+        lf_pop_font(&filter_font);
+
+        lf_pop_style_props();
+      }
+
       lf_pop_style_props();
       lf_push_font(&task_font);
+
       /* draw task */
       for (uint16_t i = 0; i < num_tasks; ++i, lf_next_line()) {
         task * t = tasks[i];
