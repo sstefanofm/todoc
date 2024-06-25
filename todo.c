@@ -1,6 +1,7 @@
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <leif/leif.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #define WM_CLASS "TodoC" /* window title */
@@ -25,7 +26,7 @@ typedef struct {
   Priority priority;
 } task;
 
-static int win_w = 640, win_h = 320;
+static uint16_t win_w = 640, win_h = 320;
 static Filter current_filter = 0;
 static LfFont title_font;
 static LfFont newtask_font;
@@ -34,7 +35,7 @@ static LfFont task_font;
 static LfTexture trash_texture;
 
 static task * tasks[1024];
-static uint32_t num_tasks = 0;
+static uint16_t num_tasks = 0;
 
 static void
 render_header(void)
@@ -67,7 +68,7 @@ render_header(void)
 static void
 render_filters(void)
 {
-  const int num_filters = 4;
+  const uint8_t num_filters = 4;
   static const char * filters[] = { "all", "todo", "in progress", "completed" };
 
   LfUIElementProps btn_props = lf_get_theme().button_props;
@@ -80,7 +81,7 @@ render_filters(void)
   lf_next_line();
 
   /* actually print the buttons */
-  for (int i = 0; i < num_filters; ++i) {
+  for (uint8_t i = 0; i < num_filters; ++i) {
     btn_props.color = LF_NO_COLOR;
     btn_props.text_color = (LfColor) { 255, 255, 255, 255 };
 
@@ -171,11 +172,11 @@ main(void)
       lf_pop_style_props();
       lf_push_font(&task_font);
       /* draw task */
-      for (int i = 0; i < num_tasks; ++i, lf_next_line()) {
+      for (uint16_t i = 0; i < num_tasks; ++i, lf_next_line()) {
         task * t = tasks[i];
 
         float ptr_y = lf_get_ptr_y() + 5.f;
-        const float inc = 16.5f;
+        const float inc_y = 16.5f;
         const float priority_size = 11.f;
         float margin_left = 15.f;
 
@@ -191,17 +192,18 @@ main(void)
               priority_color = (LfColor) { 239, 14, 48, 255 };
           }
 
-          lf_set_ptr_y_absolute(ptr_y += inc);
+          lf_set_ptr_y_absolute(ptr_y += inc_y);
           lf_rect(priority_size, priority_size, priority_color, 6.f);
         }
 
         { /* draw remove task trash can button */
-          lf_set_ptr_y_absolute(ptr_y - (inc * 1.5f));
+          lf_set_ptr_y_absolute(ptr_y - 5.f);
+          lf_set_ptr_x(margin_left *= 1.2f);
 
           LfUIElementProps trash_props = lf_get_theme().button_props;
           trash_props.color = LF_NO_COLOR;
           trash_props.border_width = 0.f;
-          trash_props.padding = 20.f;
+          trash_props.padding = 0.f;
           trash_props.margin_top = 0.f;
           trash_props.margin_left = 0.f;
           trash_props.margin_right = 0.f;
@@ -210,8 +212,11 @@ main(void)
 
           if (lf_image_button(
             ((LfTexture) { .id = trash_texture.id, .width = 20.f, .height = 20.f })
-          ) == LF_CLICKED)
-            printf("clicked\n");
+          ) == LF_CLICKED) {
+            for (uint8_t task_index = i; task_index < num_tasks - 1; ++task_index)
+              *( tasks + i ) = *( tasks + i + 1 );
+            --num_tasks;
+          }
 
           lf_pop_style_props();
         }
@@ -224,8 +229,8 @@ main(void)
           cb_props.corner_radius = 2.f;
           lf_push_style_props(cb_props);
 
-          lf_set_ptr_x(margin_left *= 3.8);
-          lf_set_ptr_y_absolute(ptr_y - inc);
+          lf_set_ptr_x(margin_left *= 2.3f);
+          lf_set_ptr_y_absolute(ptr_y - inc_y);
           lf_checkbox("", &tasks[i]->completed, LF_NO_COLOR, ((LfColor) { 65, 167, 204, 255 }));
           lf_pop_style_props();
 
@@ -233,8 +238,8 @@ main(void)
         }
 
         { /* draw description */
-          lf_set_ptr_y_absolute(ptr_y - inc);
-          lf_set_ptr_x(margin_left *= 1.8f);
+          lf_set_ptr_y_absolute(ptr_y - inc_y);
+          lf_set_ptr_x(margin_left *= 2.f);
           lf_text(tasks[i]->description);
         }
 
@@ -246,7 +251,7 @@ main(void)
           lf_pop_style_props();
         }
 
-        ptr_y += inc * 2;
+        ptr_y += inc_y * 2;
       }
 
       lf_pop_font();
