@@ -39,20 +39,22 @@ static uint16_t num_tasks = 0;
 static void
 render_header(void)
 {
-  const float btn_w = 100.0f;
+  const float btn_w = 85.f;
 
   lf_push_font(&title_font);
   lf_text(WM_CLASS);
   lf_pop_font();
 
   LfUIElementProps btn_props = lf_get_theme().button_props;
+  btn_props.padding = 7.5f;
   btn_props.margin_left = 0.0f;
   btn_props.margin_right = 0.0f;
   btn_props.margin_top = 0.0f;
   btn_props.margin_bottom = 0.0f;
-  btn_props.color = (LfColor) { 211, 111, 135, 255 };
-  btn_props.border_width = 0.0f;
-  btn_props.corner_radius = 7.f;
+  btn_props.color = (LfColor) { 150, 150, 215, 255 };
+  btn_props.hover_color = (LfColor) { 111, 111, 215, 255 };
+  btn_props.border_width = 0.f;
+  btn_props.corner_radius = 6.7f;
 
   lf_push_style_props(btn_props);
   lf_set_ptr_x_absolute(win_w - (WIN_PADDING * 2.0f) - btn_w);
@@ -115,7 +117,7 @@ main(void)
   lf_set_theme(theme);
 
   title_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 35);
-  newtask_font = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 20);
+  newtask_font = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 18);
   filter_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 16);
   task_font = lf_load_font("./font/FreeSansBold.otf", 16);
 
