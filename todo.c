@@ -1,5 +1,6 @@
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
+#include <cglm/types-struct.h>
 #include <leif/leif.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -35,7 +36,8 @@ static uint16_t win_w = 640, win_h = 320;
 static Filter current_filter = ALL;
 static GuiTab current_tab = DASHBOARD;
 static LfFont title_font;
-static LfFont new_task_font;
+static LfFont new_task_font_bold;
+static LfFont new_task_font_regular;
 static LfFont filter_font;
 static LfFont task_font;
 static LfTexture trash_texture;
@@ -67,9 +69,9 @@ get_btn_props(bool is_main_tab)
   btn_props.corner_radius = 6.7f;
 
   if (is_main_tab)
-    btn_props.text_color = (LfColor) { 255, 255, 255, 255 };
+    btn_props.text_color = LF_WHITE;
   else
-    btn_props.text_color = (LfColor) { 0, 0, 0, 255 };
+    btn_props.text_color = LF_BLACK;
 
   return btn_props;
 }
@@ -98,7 +100,7 @@ render_header(char *title)
 
       btn_props.text_color = (LfColor) { 0, 0, 0, 255 };
       lf_push_style_props(btn_props);
-      lf_push_font(&new_task_font);
+      lf_push_font(&new_task_font_bold);
 
       if (lf_button_fixed("New task", btn_w, -1) == LF_CLICKED)
         current_tab = NEW_TASK;
@@ -124,7 +126,6 @@ render_header(char *title)
   }
 
   lf_pop_style_props();
-  lf_pop_font();
 }
 
 static void
@@ -298,6 +299,43 @@ render_tasks(void)
 static void
 render_new_task(void)
 {
+  lf_next_line();
+
+  LfUIElementProps field_description_props = lf_get_theme().text_props;
+  field_description_props.margin_top = 20.f;
+
+  {
+    lf_push_font(&new_task_font_bold);
+    lf_push_style_props(field_description_props);
+    lf_text("Task");
+
+    lf_pop_style_props();
+    lf_pop_font();
+
+    lf_next_line();
+    LfUIElementProps input_props = lf_get_theme().inputfield_props;
+    input_props.padding = 15.f;
+    input_props.color = lf_color_from_zto((vec4s) { 0.05f, 0.05f, 0.05f, 1.0f });
+    input_props.corner_radius = 2.f;
+    input_props.text_color = (LfColor) { 255, 255, 255, 255 };
+    input_props.border_width = 1.f;
+    input_props.border_color = new_task_input.selected ? LF_WHITE : (LfColor) { 150, 150, 150, 255 };
+    input_props.margin_top = 7.f;
+    input_props.margin_bottom = 7.f;
+
+    lf_push_font(&new_task_font_regular);
+    lf_push_style_props(input_props);
+    new_task_input = (LfInputField) {
+      .width = (win_w - WIN_PADDING * 4.f),
+      .buf = new_task_input_value,
+      .buf_size = 512,
+      .placeholder = (char *) "Is there something to do?"
+    };
+    lf_input_text(&new_task_input);
+
+    lf_pop_style_props();
+    lf_pop_font();
+  }
 
 }
 
@@ -317,8 +355,9 @@ main(void)
   lf_set_theme(theme);
 
   title_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 35);
-  new_task_font = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 18);
-  filter_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 16);
+  new_task_font_bold = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 20);
+  new_task_font_regular = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 18);
+  filter_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 18);
   task_font = lf_load_font("./font/FreeSansBold.otf", 16);
 
   trash_texture = lf_load_texture("./icon/trash.png", true, LF_TEX_FILTER_LINEAR);
@@ -369,7 +408,8 @@ main(void)
   }
 
   lf_free_font(&title_font);
-  lf_free_font(&new_task_font);
+  lf_free_font(&new_task_font_bold);
+  lf_free_font(&new_task_font_regular);
   lf_free_font(&filter_font);
   lf_free_font(&task_font);
 
