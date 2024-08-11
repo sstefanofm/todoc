@@ -1,6 +1,7 @@
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <leif/leif.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -34,44 +35,96 @@ static uint16_t win_w = 640, win_h = 320;
 static Filter current_filter = ALL;
 static GuiTab current_tab = DASHBOARD;
 static LfFont title_font;
-static LfFont newtask_font;
+static LfFont new_task_font;
 static LfFont filter_font;
 static LfFont task_font;
 static LfTexture trash_texture;
+static LfTexture back_texture;
+static LfInputField new_task_input;
+static char new_task_input_value[512];
 
 static task * tasks[1024];
 static uint16_t num_tasks = 0;
 
-static void
-render_header(void)
+static LfUIElementProps
+get_btn_props(bool is_main_tab)
 {
-  const float btn_w = 85.f;
+  LfUIElementProps btn_props;
 
-  lf_push_font(&title_font);
-  lf_text(WM_CLASS);
-  lf_pop_font();
+  if (is_main_tab)
+    btn_props = lf_get_theme().button_props;
+  else
+    btn_props = lf_get_theme().image_props;
 
-  LfUIElementProps btn_props = lf_get_theme().button_props;
   btn_props.padding = 7.5f;
-  btn_props.margin_left = 0.0f;
+  btn_props.margin_left = is_main_tab ? 0.f : 10.f;
   btn_props.margin_right = 0.0f;
-  btn_props.margin_top = 0.0f;
+  btn_props.margin_top = is_main_tab ? 0.f : 10.f;
   btn_props.margin_bottom = 0.0f;
   btn_props.color = (LfColor) { 150, 150, 215, 255 };
   btn_props.hover_color = (LfColor) { 111, 111, 215, 255 };
   btn_props.border_width = 0.f;
   btn_props.corner_radius = 6.7f;
 
-  lf_push_style_props(btn_props);
-  lf_set_ptr_x_absolute(win_w - (WIN_PADDING * 2.0f) - btn_w);
+  if (is_main_tab)
+    btn_props.text_color = (LfColor) { 255, 255, 255, 255 };
+  else
+    btn_props.text_color = (LfColor) { 0, 0, 0, 255 };
 
-  lf_push_font(&newtask_font);
-  if (lf_button_fixed("New task", btn_w, -1) == LF_CLICKED) {
-    current_tab = NEW_TASK;
-  }
+  return btn_props;
+}
+
+static void
+render_title(char *title)
+{
+  lf_push_font(&title_font);
+  lf_text(title);
   lf_pop_font();
+}
+
+static void
+render_header(char *title)
+{
+  const float btn_w = 85.f;
+
+  LfUIElementProps btn_props = get_btn_props(current_tab == DASHBOARD);
+  lf_push_style_props(btn_props);
+
+  switch (current_tab) {
+    case DASHBOARD:
+      render_title(title);
+
+      lf_set_ptr_x_absolute(win_w - (WIN_PADDING * 2.0f) - btn_w);
+
+      btn_props.text_color = (LfColor) { 0, 0, 0, 255 };
+      lf_push_style_props(btn_props);
+      lf_push_font(&new_task_font);
+
+      if (lf_button_fixed("New task", btn_w, -1) == LF_CLICKED)
+        current_tab = NEW_TASK;
+      lf_pop_style_props();
+      lf_pop_font();
+
+      break;
+
+    case NEW_TASK:
+      if (/* render back_button */ lf_image_button(((LfTexture) {
+        .id = back_texture.id,
+        .width = 20.f,
+        .height = 20.f
+      })) == LF_CLICKED)
+        current_tab = DASHBOARD;
+
+      btn_props.text_color = (LfColor) { 255, 255, 255, 255 };
+      btn_props.margin_top = 6.9f;
+      lf_push_style_props(btn_props);
+
+      render_title(title);
+      lf_pop_style_props();
+  }
 
   lf_pop_style_props();
+  lf_pop_font();
 }
 
 static void
@@ -242,6 +295,12 @@ render_tasks(void)
 
 }
 
+static void
+render_new_task(void)
+{
+
+}
+
 int
 main(void)
 {
@@ -258,11 +317,12 @@ main(void)
   lf_set_theme(theme);
 
   title_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 35);
-  newtask_font = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 18);
+  new_task_font = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 18);
   filter_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 16);
   task_font = lf_load_font("./font/FreeSansBold.otf", 16);
 
   trash_texture = lf_load_texture("./icon/trash.png", true, LF_TEX_FILTER_LINEAR);
+  back_texture = lf_load_texture("./icon/back.png", true, LF_TEX_FILTER_LINEAR);
 
   task * new_task = (task *) malloc(sizeof(* new_task));
   new_task->completed = false;
@@ -289,15 +349,15 @@ main(void)
       true
     );
 
-    render_header();
-    render_filters();
-
     switch (current_tab) {
       case DASHBOARD:
+        render_header(WM_CLASS);
+        render_filters();
         render_tasks();
         break;
       case NEW_TASK:
-        /* TODO */
+        render_header("Create new task");
+        render_new_task();
         break;
     }
 
@@ -309,11 +369,12 @@ main(void)
   }
 
   lf_free_font(&title_font);
-  lf_free_font(&newtask_font);
+  lf_free_font(&new_task_font);
   lf_free_font(&filter_font);
   lf_free_font(&task_font);
 
   lf_free_texture(&trash_texture);
+  lf_free_texture(&back_texture);
 
   glfwDestroyWindow(window);
   glfwTerminate();
