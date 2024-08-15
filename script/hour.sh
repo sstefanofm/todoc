@@ -1,3 +1,3 @@
 #! /usr/bin/env bash
 
-date +'%H:%M'
+printf " ~ %s\n" `date +'%H:%M'`

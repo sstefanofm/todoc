@@ -212,7 +212,7 @@ render_tasks(void)
   lf_push_style_props(div_props);
 
   lf_div_begin(
-    ((vec2s) { lf_get_ptr_x(), lf_get_ptr_y() }),
+    ((vec2s) { lf_get_ptr_x(), lf_get_ptr_y() + 10.f }),
     ((vec2s) { win_w - (WIN_PADDING * 2.0f), win_h - lf_get_ptr_y() - WIN_PADDING }),
     true
   );
@@ -298,7 +298,7 @@ render_tasks(void)
     }
 
     { /* draw description */
-      lf_set_ptr_y_absolute(ptr_y - inc_y);
+      lf_set_ptr_y_absolute(ptr_y - inc_y + 1.f);
       lf_set_ptr_x(margin_left *= 2.f);
       lf_text(tasks[i]->description);
     }
