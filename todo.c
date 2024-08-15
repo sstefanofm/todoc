@@ -5,9 +5,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #define WM_CLASS "TodoC" /* window title */
 #define WIN_PADDING 20
+#define TASK_TEXT_BUFFER_SIZE 512
 
 typedef enum {
   DASHBOARD = 0,
@@ -43,10 +45,46 @@ static LfFont task_font;
 static LfTexture trash_texture;
 static LfTexture back_texture;
 static LfInputField new_task_input;
-static char new_task_input_value[512];
+static char new_task_input_value[TASK_TEXT_BUFFER_SIZE];
 
 static task * tasks[1024];
 static uint16_t num_tasks = 0;
+
+static char *
+get_cmd_output(const char * cmd) {
+  FILE * fp;
+  char buffer[1024];
+  char * std_out = NULL;
+  size_t std_out_size = 0;
+
+  /* open new pipe for cmd */
+  fp = popen(cmd, "r");
+  if (fp == NULL) {
+    printf("Failed to run command %s \n", cmd);
+    return NULL;
+  }
+
+  /* read cmd output */
+  while (fgets(buffer, sizeof(buffer), fp) != (void *) '\0') {
+    size_t buffer_len = strlen(buffer);
+    char * temp = realloc(std_out, std_out_size + buffer_len + 1);
+
+    if (temp == NULL) {
+      printf("Memory allocation failed\n");
+      free(std_out);
+      pclose(fp);
+      return NULL;
+    }
+
+    std_out = temp;
+    strcpy(std_out + std_out_size, buffer);
+    std_out_size += buffer_len;
+  }
+
+  pclose(fp);
+
+  return std_out;
+}
 
 static LfUIElementProps
 get_btn_props(bool is_main_tab)
@@ -314,7 +352,7 @@ render_new_task(void)
 
     lf_next_line();
     LfUIElementProps input_props = lf_get_theme().inputfield_props;
-    input_props.padding = 15.f;
+    input_props.padding = 11.f;
     input_props.color = lf_color_from_zto((vec4s) { 0.05f, 0.05f, 0.05f, 1.0f });
     input_props.corner_radius = 2.f;
     input_props.text_color = (LfColor) { 255, 255, 255, 255 };
@@ -325,12 +363,6 @@ render_new_task(void)
 
     lf_push_font(&new_task_font_regular);
     lf_push_style_props(input_props);
-    new_task_input = (LfInputField) {
-      .width = (win_w - WIN_PADDING * 4.f),
-      .buf = new_task_input_value,
-      .buf_size = 512,
-      .placeholder = (char *) "Is there something to do?"
-    };
     lf_input_text(&new_task_input);
 
     lf_pop_style_props();
@@ -356,23 +388,31 @@ main(void)
 
   title_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 35);
   new_task_font_bold = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 20);
-  new_task_font_regular = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 18);
+  new_task_font_regular = lf_load_font("./font/RecMonoCasualNerdFont-Regular.ttf", 20);
   filter_font = lf_load_font("./font/RecMonoCasualNerdFont-Bold.ttf", 18);
   task_font = lf_load_font("./font/FreeSansBold.otf", 16);
 
   trash_texture = lf_load_texture("./icon/trash.png", true, LF_TEX_FILTER_LINEAR);
   back_texture = lf_load_texture("./icon/back.png", true, LF_TEX_FILTER_LINEAR);
 
+  memset(new_task_input_value, 0, TASK_TEXT_BUFFER_SIZE);
+  new_task_input = (LfInputField) {
+    .width = (win_w - WIN_PADDING * 4.f),
+    .buf = new_task_input_value,
+    .buf_size = TASK_TEXT_BUFFER_SIZE,
+    .placeholder = (char *) "Is there something to do?"
+  };
+
   task * new_task = (task *) malloc(sizeof(* new_task));
   new_task->completed = false;
   new_task->priority = LOW;
-  new_task->date = "empty";
+  new_task->date = get_cmd_output("bash ./script/date.sh && bash ./script/hour.sh");
   new_task->description = "Code something";
   tasks[num_tasks++] = new_task;
   task * task2 = (task *) malloc(sizeof(* task2));
   task2->completed = true;
   task2->priority = MEDIUM;
-  task2->date = "new date";
+  task2->date = get_cmd_output("bash ./script/date.sh && bash ./script/hour.sh");
   task2->description = "Ur momma";
   tasks[num_tasks++] = task2;
 
