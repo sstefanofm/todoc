@@ -342,7 +342,7 @@ render_new_task(void)
   LfUIElementProps field_description_props = lf_get_theme().text_props;
   field_description_props.margin_top = 20.f;
 
-  {
+  { /* render new_task input text */
     lf_push_font(&new_task_font_bold);
     lf_push_style_props(field_description_props);
     lf_text("Task");
@@ -369,6 +369,17 @@ render_new_task(void)
     lf_pop_font();
   }
 
+  { /* render priority selector */
+    lf_push_font(&new_task_font_bold);
+    lf_text("Priority");
+    lf_pop_font();
+
+    lf_next_line();
+
+    lf_push_font(&new_task_font_regular);
+    lf_text("selector");
+    lf_pop_font();
+  }
 }
 
 int
