@@ -34,7 +34,7 @@ typedef struct {
   Priority priority;
 } task;
 
-static uint16_t win_w = 640, win_h = 320;
+static uint16_t win_w = 640, win_h = 380;
 static Filter current_filter = ALL;
 static GuiTab current_tab = DASHBOARD;
 static LfFont title_font;
@@ -369,16 +369,32 @@ render_new_task(void)
     lf_pop_font();
   }
 
-  { /* render priority selector */
+  static int32_t selected_priority = -1;
+  { /* render priority dropdown */
+    static bool opened = false;
+    static const char * items[3] = {
+      "Low",
+      "Medium",
+      "High"
+    };
+
+    LfUIElementProps dropdown_props = lf_get_theme().button_props;
+    dropdown_props.color = (LfColor) { 11, 11, 11, 255 };
+    dropdown_props.text_color = LF_WHITE;
+    dropdown_props.border_width = 0.f;
+    dropdown_props.corner_radius = 0.f;
+    dropdown_props.corner_radius = 2.f;
+    dropdown_props.margin_top = 0.f;
+    dropdown_props.margin_left = 0.f;
+    dropdown_props.margin_right = 0.f;
+    dropdown_props.margin_bottom = 0.f;
+    dropdown_props.padding = 5.5f;
+
     lf_push_font(&new_task_font_bold);
-    lf_text("Priority");
+    lf_push_style_props(dropdown_props);
+    lf_dropdown_menu(items, "Priority", 3, 140, 80, &selected_priority, &opened);
     lf_pop_font();
-
-    lf_next_line();
-
-    lf_push_font(&new_task_font_regular);
-    lf_text("selector");
-    lf_pop_font();
+    lf_pop_style_props();
   }
 }
 
