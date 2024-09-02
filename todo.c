@@ -423,8 +423,16 @@ render_new_task(void)
       new_task->completed = false;
       new_task->priority = (Priority) selected_priority;
       new_task->date = get_cmd_output("bash ./script/date.sh && bash ./script/hour.sh");
-      new_task->description = new_task_input_value;
+
+      /* copy input buffer value into new variable */
+      char * new_description = malloc(strlen(new_task_input_value));
+      strcpy(new_description, new_task_input_value);
+
+      new_task->description = new_description;
       tasks[num_tasks++] = new_task;
+
+      /* clear input buffer string */
+      memset(new_task_input_value, 0, TASK_TEXT_BUFFER_SIZE);
 
       current_tab = DASHBOARD;
     }
