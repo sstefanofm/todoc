@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define WM_CLASS "TodoC" /* window title */
@@ -334,6 +335,21 @@ render_tasks(void)
 
 }
 
+static int
+compare_task_priority(const void * a, const void * b)
+{
+  task * task_a = * (task **) a;
+  task * task_b = * (task **) b;
+
+  return task_b->priority - task_a->priority; /* the higher priority task will come before a lower priority task */
+}
+
+static void
+sort_tasks_by_priority(void)
+{
+  qsort(tasks, num_tasks, sizeof(task *), compare_task_priority);
+}
+
 static void
 render_new_task(void)
 {
@@ -436,6 +452,8 @@ render_new_task(void)
       /* reset priority */
       selected_priority = -1;
 
+      sort_tasks_by_priority();
+
       current_tab = DASHBOARD;
     }
 
@@ -475,19 +493,6 @@ main(void)
     .buf_size = TASK_TEXT_BUFFER_SIZE,
     .placeholder = (char *) "Is there something to do?"
   };
-
-  task * new_task = (task *) malloc(sizeof(* new_task));
-  new_task->completed = false;
-  new_task->priority = LOW;
-  new_task->date = get_cmd_output("bash ./script/date.sh && bash ./script/hour.sh");
-  new_task->description = "Code something";
-  tasks[num_tasks++] = new_task;
-  task * task2 = (task *) malloc(sizeof(* task2));
-  task2->completed = true;
-  task2->priority = MEDIUM;
-  task2->date = get_cmd_output("bash ./script/date.sh && bash ./script/hour.sh");
-  task2->description = "Ur momma";
-  tasks[num_tasks++] = task2;
 
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);
