@@ -379,7 +379,7 @@ render_new_task(void)
     };
 
     LfUIElementProps dropdown_props = lf_get_theme().button_props;
-    dropdown_props.color = (LfColor) { 11, 11, 11, 255 };
+    dropdown_props.color = LF_NO_COLOR;
     dropdown_props.text_color = LF_WHITE;
     dropdown_props.border_width = 0.f;
     dropdown_props.corner_radius = 0.f;
