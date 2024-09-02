@@ -433,6 +433,8 @@ render_new_task(void)
 
       /* clear input buffer string */
       memset(new_task_input_value, 0, TASK_TEXT_BUFFER_SIZE);
+      /* reset priority */
+      selected_priority = -1;
 
       current_tab = DASHBOARD;
     }
