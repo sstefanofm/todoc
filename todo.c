@@ -239,6 +239,20 @@ render_tasks(void)
     const float priority_size = 11.f;
     float margin_left = 15.f;
 
+    { /* click on priority to change it */
+      bool clicked_priority = lf_hovered(
+        (vec2s) { lf_get_ptr_x(), lf_get_ptr_y() + inc_y },
+        (vec2s) { priority_size, priority_size }
+      ) && lf_mouse_button_went_down(GLFW_MOUSE_BUTTON_LEFT);
+
+      if (clicked_priority) {
+        if (t->priority + 1 >= HIGH + 1)
+          t->priority = 0;
+        else
+          ++t->priority;
+      }
+    }
+
     { /* draw priority badge */
       LfColor priority_color;
 
