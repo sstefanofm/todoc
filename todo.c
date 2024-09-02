@@ -396,6 +396,28 @@ render_new_task(void)
     lf_pop_font();
     lf_pop_style_props();
   }
+
+  { /* render ADD task button */
+    bool valid_task = strlen(new_task_input_value) && selected_priority != -1;
+    const char * text = "Add";
+    const float width = 80.f;
+
+    LfUIElementProps btn_props = get_btn_props(false);
+
+    lf_set_ptr_x_absolute(win_w - (7.f * WIN_PADDING));
+    lf_set_ptr_y_absolute(WIN_PADDING * 1.1f);
+    lf_push_style_props(btn_props);
+    lf_push_font(&new_task_font_bold);
+
+    if (
+      lf_button_fixed(text, width, -1) == LF_CLICKED && valid_task
+      || lf_key_went_down(GLFW_KEY_ENTER) && valid_task
+    )
+      printf("Add new task\n");
+
+    lf_pop_style_props();
+    lf_pop_font();
+  }
 }
 
 int
