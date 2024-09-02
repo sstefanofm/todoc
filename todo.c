@@ -418,8 +418,16 @@ render_new_task(void)
     if (
       lf_button_fixed(text, width, -1) == LF_CLICKED && valid_task
       || lf_key_went_down(GLFW_KEY_ENTER) && valid_task
-    )
-      printf("Add new task\n");
+    ) {
+      task * new_task = (task *) malloc(sizeof(* new_task));
+      new_task->completed = false;
+      new_task->priority = (Priority) selected_priority;
+      new_task->date = get_cmd_output("bash ./script/date.sh && bash ./script/hour.sh");
+      new_task->description = new_task_input_value;
+      tasks[num_tasks++] = new_task;
+
+      current_tab = DASHBOARD;
+    }
 
     lf_pop_style_props();
     lf_pop_font();
