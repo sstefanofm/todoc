@@ -404,6 +404,12 @@ render_new_task(void)
 
     LfUIElementProps btn_props = get_btn_props(false);
 
+    if (!valid_task) {
+      LfColor disabled_color = (LfColor) { 100, 100, 100, 255 };
+      btn_props.color = disabled_color;
+      btn_props.hover_color = disabled_color;
+    }
+
     lf_set_ptr_x_absolute(win_w - (7.f * WIN_PADDING));
     lf_set_ptr_y_absolute(WIN_PADDING * 1.1f);
     lf_push_style_props(btn_props);
